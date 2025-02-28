@@ -2,6 +2,7 @@
 #include "kernel/stat.h"
 #include "user/user.h"
 
+//Báo cho trình biên dịch biết rằng hàm này sẽ không trả về mà sẽ gọi exit()
 void sieve(int left_pipe[2]) __attribute__((noreturn));
 
 void sieve(int left_pipe[2]) {
