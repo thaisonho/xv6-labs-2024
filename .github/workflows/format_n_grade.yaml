@@ -57,7 +57,7 @@ jobs:
           continue-on-error: true
         
         - name: Environment setup for grading
-          run: sudo apt-get update && apt-get install git build-essential gdb-multiarch qemu-system-misc gcc-riscv64-linux-gnu binutils-riscv64-linux-gnu
+          run: sudo apt-get update && apt-get -y install git build-essential gdb-multiarch qemu-system-misc gcc-riscv64-linux-gnu binutils-riscv64-linux-gnu
         - name: Grading
           run: |
             chmod +x ./grade-lab-util
