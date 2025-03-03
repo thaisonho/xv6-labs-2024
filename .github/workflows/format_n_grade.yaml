@@ -13,8 +13,14 @@ jobs:
           with:
             python-version: '3.13'
 
-        - name: Install clang-format
-          run: sudo apt update && sudo apt install -y clang-format
+        - name: Install clang-format 19
+          run: |
+            sudo apt update
+            sudo apt install -y software-properties-common
+            sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+            sudo apt update
+            sudo apt install -y clang-format-19
+            sudo ln -sf /usr/bin/clang-format-19 /usr/bin/clang-format
 
         - name: Formatting
           run: |
@@ -39,14 +45,14 @@ jobs:
               xargs clang-format -i -style=file < changed_files.txt
             fi
         
-        - name: Commit formatted files
-          env: ${{ secrets.GITHUB_TOKEN }}
+        - name: Commit formatted files  
           run: |
             git config --global user.name 'github-actions[bot]'
             git config --global user.email 'github-actions[bot]@users.noreply.github.com'
             git add .
             git diff --staged --quiet || git commit -m "Apply clang-format changes"
             git push
+          env: ${{ secrets.GITHUB_TOKEN }}
           continue-on-error: true
 
         - name: Grading
