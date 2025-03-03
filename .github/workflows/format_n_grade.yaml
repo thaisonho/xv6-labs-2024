@@ -18,9 +18,23 @@ jobs:
 
         - name: Formatting
           run: |
-            # Get the list of changed files in the last commit/PR
-            git diff --name-only HEAD^ HEAD | grep -E '\.(c|cpp|h|hpp)$' > changed_files.txt
-            # Apply clang-format to changed files if any exist
+            # Determine the base reference based on event type
+            if [ "${{ github.event_name }}" = "pull_request" ]; then
+            # For pull requests, compare against the base branch
+            git fetch origin ${{ github.base_ref }}:${{ github.base_ref }}
+            CHANGED_FILES=$(git diff --name-only ${{ github.base_ref }} HEAD | grep -E '\.(c|cpp|h|hpp)$')
+            else
+              # For push events, compare with previous commit if it exists
+              if git rev-parse HEAD^ >/dev/null 2>&1; then
+                CHANGED_FILES=$(git diff --name-only HEAD^ HEAD | grep -E '\.(c|cpp|h|hpp)$')
+              else
+                # If no previous commit (e.g., first commit), format all matching files
+                CHANGED_FILES=$(git ls-files | grep -E '\.(c|cpp|h|hpp)$')
+              fi
+            fi
+          
+            # Write changed files to a file and format them if any exist
+            echo "$CHANGED_FILES" > changed_files.txt
             if [ -s changed_files.txt ]; then
               xargs clang-format -i -style=file < changed_files.txt
             fi
