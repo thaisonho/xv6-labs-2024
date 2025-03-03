@@ -43,6 +43,7 @@ jobs:
             echo "$CHANGED_FILES" > changed_files.txt
             if [ -s changed_files.txt ]; then
               xargs clang-format -i -style=file < changed_files.txt
+              rm -f changed_files.txt
             fi
         
         - name: Commit formatted files  
