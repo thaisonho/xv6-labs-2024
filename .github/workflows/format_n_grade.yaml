@@ -52,7 +52,8 @@ jobs:
             git add .
             git diff --staged --quiet || git commit -m "Apply clang-format changes"
             git push
-          env: ${{ secrets.GITHUB_TOKEN }}
+          env:
+            GITHUB_TOKEN: ${{ github.token }}
           continue-on-error: true
 
         - name: Grading
