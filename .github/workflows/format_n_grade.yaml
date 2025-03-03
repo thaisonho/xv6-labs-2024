@@ -21,7 +21,7 @@ jobs:
             # Get the list of changed files in the last commit/PR
             git diff --name-only HEAD^ HEAD | grep -E '\.(c|cpp|h|hpp)$' > changed_files.txt
             # Apply clang-format to changed files if any exist
-            -    if [ -s changed_files.txt ]; then
+            if [ -s changed_files.txt ]; then
               xargs clang-format -i -style=file < changed_files.txt
             fi
         
