@@ -63,5 +63,5 @@ jobs:
         - name: Grading
           run: |
             chmod +x ./grade-lab-util
-            ./grade-lab-util
+            ./grade-lab-util | grep --color -E 'BAD|GOOD|Score'
 
