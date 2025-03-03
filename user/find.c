@@ -3,6 +3,7 @@
 #include "user/user.h"
 #include "kernel/fs.h"
 
+//helper funtion for find
 void find_helper(char const *path, char const *target)
 {
 	char buf[512], *p;
@@ -53,6 +54,7 @@ void find_helper(char const *path, char const *target)
 	}
 	close(fd);
 }
+
 int main(int argc, char const *argv[])
 {
 	if (argc != 3)
