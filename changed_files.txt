@@ -40,6 +40,7 @@ kernel/vm.c
 mkfs/mkfs.c
 user/cat.c
 user/echo.c
+user/find.c
 user/forktest.c
 user/grep.c
 user/grind.c
@@ -59,4 +60,5 @@ user/umalloc.c
 user/user.h
 user/usertests.c
 user/wc.c
+user/xargs.c
 user/zombie.c
