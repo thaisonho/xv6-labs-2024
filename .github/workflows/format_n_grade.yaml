@@ -1,0 +1,67 @@
+name: Code Formatting and Grading
+
+on: [push]
+
+jobs:
+    format-and-grade:
+        runs-on: ubuntu-latest
+        steps:
+        - uses: actions/checkout@v4
+
+        - name: Update Python
+          uses: actions/setup-python@v5
+          with:
+            python-version: '3.13'
+
+        - name: Install clang-format 19
+          run: |
+            sudo apt update
+            sudo apt install -y software-properties-common
+            sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+            sudo apt update
+            sudo apt install -y clang-format-19
+            sudo ln -sf /usr/bin/clang-format-19 /usr/bin/clang-format
+
+        - name: Formatting
+          run: |
+            # Determine the base reference based on event type
+            if [ "${{ github.event_name }}" = "pull_request" ]; then
+            # For pull requests, compare against the base branch
+            git fetch origin ${{ github.base_ref }}:${{ github.base_ref }}
+            CHANGED_FILES=$(git diff --name-only ${{ github.base_ref }} HEAD | grep -E '\.(c|cpp|h|hpp)$')
+            else
+              # For push events, compare with previous commit if it exists
+              if git rev-parse HEAD^ >/dev/null 2>&1; then
+                CHANGED_FILES=$(git diff --name-only HEAD^ HEAD | grep -E '\.(c|cpp|h|hpp)$')
+              else
+                # If no previous commit (e.g., first commit), format all matching files
+                CHANGED_FILES=$(git ls-files | grep -E '\.(c|cpp|h|hpp)$')
+              fi
+            fi
+          
+            # Write changed files to a file and format them if any exist
+            echo "$CHANGED_FILES" > changed_files.txt
+            if [ -s changed_files.txt ]; then
+              xargs clang-format -i -style=file < changed_files.txt
+            fi
+        
+        - name: Commit formatted files  
+          run: |
+            git config --global user.name 'github-actions[bot]'
+            git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+            git add .
+            git diff --staged --quiet || git commit -m "Apply clang-format changes"
+            git push
+          env:
+            GITHUB_TOKEN: ${{ github.token }}
+          continue-on-error: true
+        
+        - name: Environment setup for grading
+          run: |
+            sudo apt-get update
+            sudo apt-get install -y build-essential gdb-multiarch qemu-system-misc gcc-riscv64-linux-gnu binutils-riscv64-linux-gnu
+        - name: Grading
+          run: |
+            chmod +x ./grade-lab-util
+            ./grade-lab-util | grep --color -E 'BAD|GOOD|Score'
+
