@@ -27,15 +27,17 @@ readline (char *new_argv[32], int curr_argc)
   int offset = 0;
   while (offset < n)
     {
-      new_argv[curr_argc++] = buf + offset;
-      while (buf[offset] != ' ' && offset < n)
-        {
-          offset++;
-        }
-      while (buf[offset] == ' ' && offset < n)
-        {
-          buf[offset++] = 0;
-        }
+      int arg_len = 0;
+      while (buf[offset + arg_len] != ' ' && buf[offset + arg_len] != 0)
+        arg_len++;
+
+      new_argv[curr_argc] = malloc (arg_len + 1);
+      memcpy (new_argv[curr_argc], buf + offset, arg_len);
+      new_argv[curr_argc][arg_len] = 0;
+      curr_argc++;
+      offset += arg_len;
+      while (buf[offset] == ' ')
+        offset++;
     }
   return curr_argc;
 }
