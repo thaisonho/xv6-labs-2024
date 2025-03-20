@@ -169,6 +169,7 @@ freeproc(struct proc *p)
   p->killed = 0;
   p->xstate = 0;
   p->state = UNUSED;
+  p->mask = 0;     // reset trace mask value (which is used in syscall 'trace')
 }
 
 // Create a user page table for a given process, with no user memory,
@@ -295,6 +296,9 @@ fork(void)
     return -1;
   }
   np->sz = p->sz;
+
+  // copy trace mask value
+  np->mask = p->mask;
 
   // copy saved user registers.
   *(np->trapframe) = *(p->trapframe);
