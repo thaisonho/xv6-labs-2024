@@ -1,0 +1,19 @@
+name: Grading for Lab 2
+
+on: [push]
+
+jobs:
+    grading:
+        runs-on: ubuntu-latest
+        steps:
+        - uses: actions/checkout@v4
+        
+        - name: Environment setup for grading
+          run: |
+            sudo apt update
+            sudo apt install -y build-essential gdb-multiarch qemu-system-misc gcc-riscv64-linux-gnu binutils-riscv64-linux-gnu 
+
+        - name: Grading
+          run: |
+            chmod +x ./grade-lab-syscall
+            ./grade-lab-syscall | grep --color -E 'BAD|GOOD|FAIL|OK|Score' 
