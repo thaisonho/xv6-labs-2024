@@ -693,3 +693,22 @@ procdump(void)
     printf("\n");
   }
 }
+struct spinlock proc_table_lock;
+
+// Somewhere in initialization add: initlock(&proc_table_lock, "proc_table_lock");
+
+int
+nproc(void)
+{
+    int count = 0;
+    struct proc *p;
+
+    acquire(&proc_table_lock);  // Protect the process table
+    for (p = proc; p < &proc[NPROC]; p++) {
+        if (p->state != UNUSED)
+            count++;
+    }
+    release(&proc_table_lock);
+
+    return count;
+}
