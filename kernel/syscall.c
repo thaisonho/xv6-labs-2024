@@ -169,7 +169,7 @@ static char* syscalls_name[] = {
 
         // Check if this syscall is traced or not
         if ((p->mask >> num) & 1) {
-            printf("%d: syscall %s(", p->pid, syscalls_name[num]);
+            printf("%d: %s(", p->pid, syscalls_name[num]);
 
             // Handle each syscall
             switch (num) {
