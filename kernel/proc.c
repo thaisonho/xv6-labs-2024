@@ -697,3 +697,23 @@ procdump(void)
     printf("\n");
   }
 }
+struct {
+  struct spinlock lock;
+  struct proc proc[NPROC];
+} ptable;
+
+int
+nproc(void)
+{
+    int count = 0;
+    struct proc *p;
+
+    acquire(&ptable.lock);  
+    for (p = proc; p < &proc[NPROC]; p++) {
+        if (p->state != UNUSED)
+            count++;
+    }
+    release(&ptable.lock);
+
+    return count;
+}
