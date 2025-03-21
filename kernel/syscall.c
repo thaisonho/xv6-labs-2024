@@ -135,169 +135,45 @@ static uint64 (*syscalls[])(void) = {
 
 // the system call name index array
 static char* syscalls_name[] = {
-  [SYS_fork]    "syscall fork",
-  [SYS_exit]    "syscall exit",
-  [SYS_wait]    "syscall wait",
-  [SYS_pipe]    "syscall pipe",
-  [SYS_read]    "syscall read",
-  [SYS_kill]    "syscall kill",
-  [SYS_exec]    "syscall exec",
-  [SYS_fstat]   "syscall fstat",
-  [SYS_chdir]   "syscall chdir",
-  [SYS_dup]     "syscall dup",
-  [SYS_getpid]  "syscall getpid",
-  [SYS_sbrk]    "syscall sbrk",
-  [SYS_sleep]   "syscall sleep",
-  [SYS_uptime]  "syscall uptime",
-  [SYS_open]    "syscall open",
-  [SYS_write]   "syscall write",
-  [SYS_mknod]   "syscall mknod",
-  [SYS_unlink]  "syscall unlink",
-  [SYS_link]    "syscall link",
-  [SYS_mkdir]   "syscall mkdir",
-  [SYS_close]   "syscall close",
-  [SYS_trace]   "syscall trace",
-  
+  [SYS_fork]    "fork",
+  [SYS_exit]    "exit",
+  [SYS_wait]    "wait",
+  [SYS_pipe]    "pipe",
+  [SYS_read]    "read",
+  [SYS_kill]    "kill",
+  [SYS_exec]    "exec",
+  [SYS_fstat]   "fstat",
+  [SYS_chdir]   "chdir",
+  [SYS_dup]     "dup",
+  [SYS_getpid]  "getpid",
+  [SYS_sbrk]    "sbrk",
+  [SYS_sleep]   "sleep",
+  [SYS_uptime]  "uptime",
+  [SYS_open]    "open",
+  [SYS_write]   "write",
+  [SYS_mknod]   "mknod",
+  [SYS_unlink]  "unlink",
+  [SYS_link]    "link",
+  [SYS_mkdir]   "mkdir",
+  [SYS_close]   "close",
+  [SYS_trace]   "trace",
   };
 
-  void syscall(void) {
-    struct proc *p = myproc();
-    int num = p->trapframe->a7;
+void
+syscall(void) {
+  int num;
+  struct proc *p = myproc();
 
-    if (num > 0 && num < NELEM(syscalls) && syscalls[num]) {
-        // Store th return value from syscall
-        uint64 returnValue = syscalls[num]();
-
-        // Check if this syscall is traced or not
-        if ((p->mask >> num) & 1) {
-            printf("%d: syscall %s(", p->pid, syscalls_name[num]);
-
-            // Handle each syscall
-            switch (num) {
-                case SYS_read:
-                case SYS_write: {
-                    int fd, size;
-                    uint64 buf;
-                    argint(0, &fd);
-                    argaddr(1, &buf);
-                    argint(2, &size);
-                    printf("%d, %p, %d", fd, (void *)buf, size);
-                    break;
-                }
-                case SYS_open: {
-                    char path[MAXPATH];
-                    int flags;
-                    argstr(0, path, MAXPATH);
-                    argint(1, &flags);
-                    printf("\"%s\", %d", path, flags);
-                    break;
-                }
-                case SYS_close: {
-                    int fd;
-                    argint(0, &fd);
-                    printf("%d", fd);
-                    break;
-                }
-                case SYS_fork:
-                case SYS_getpid:
-                    // No argument
-                    break;
-                case SYS_exit:
-                case SYS_wait: {
-                    int status;
-                    argint(0, &status);
-                    printf("%d", status);
-                    break;
-                }
-                case SYS_kill: {
-                    int pid;
-                    argint(0, &pid);
-                    printf("%d", pid);
-                    break;
-                }
-                case SYS_sbrk: {
-                    int increment;
-                    argint(0, &increment);
-                    printf("%d", increment);
-                    break;
-                }
-                case SYS_exec: {
-                    char path[MAXPATH];
-                    uint64 argv;
-                    argstr(0, path, MAXPATH);
-                    argaddr(1, &argv);
-                    printf("\"%s\", %p", path, (void *)argv);
-                    break;
-                }
-                case SYS_pipe: {
-                    uint64 fds;
-                    argaddr(0, &fds);
-                    printf("%p", (int *)fds);
-                    break;
-                }
-                case SYS_chdir:
-                case SYS_mkdir:
-                case SYS_unlink: {
-                    char path[MAXPATH];
-                    argstr(0, path, MAXPATH);
-                    printf("\"%s\"", path);
-                    break;
-                }
-                case SYS_fstat: {
-                    int fd;
-                    uint64 st;
-                    argint(0, &fd);
-                    argaddr(1, &st);
-                    printf("%d, %p", fd, (void *)st);
-                    break;
-                }
-                case SYS_link: {
-                    char oldpath[MAXPATH], newpath[MAXPATH];
-                    argstr(0, oldpath, MAXPATH);
-                    argstr(1, newpath, MAXPATH);
-                    printf("\"%s\", \"%s\"", oldpath, newpath);
-                    break;
-                }
-                case SYS_mknod: {
-                    char path[MAXPATH];
-                    int major, minor;
-                    argstr(0, path, MAXPATH);
-                    argint(1, &major);
-                    argint(2, &minor);
-                    printf("\"%s\", %d, %d", path, major, minor);
-                    break;
-                }
-                case SYS_dup: {
-                    int oldfd;
-                    argint(0, &oldfd);
-                    printf("%d", oldfd);
-                    break;
-                }
-                case SYS_sleep: {
-                    int ticks;
-                    argint(0, &ticks);
-                    printf("%d", ticks);
-                    break;
-                }
-                case SYS_trace: {
-                    int mask;
-                    argint(0, &mask);
-                    printf("%d", mask);
-                    break;
-                }
-                default:
-                    // Doesn't have this syscall
-                    printf("?");
-                    break;
-            }
-            printf(") -> %ld\n", returnValue);
-        }
-
-        // Assign the returnValue to trapframe to store the syscall result
-        p->trapframe->a0 = returnValue;
-    } else {
-        printf("%d %s: unknown sys call %d\n", p->pid, p->name, num);
-        p->trapframe->a0 = -1;
+  num = p->trapframe->a7;
+  if (num > 0 && num < NELEM(syscalls) && syscalls[num]) {
+    p->trapframe->a0 = syscalls[num]();
+    // Check if this syscall should be traced
+    if (p->mask & (1 << num)) {
+      printf("%d: syscall %s -> %ld\n", p->pid, syscalls_name[num], p->trapframe->a0);
     }
+  } else {
+    printf("%d %s: unknown sys call %d\n", p->pid, p->name, num);
+    p->trapframe->a0 = -1;
+  }
 }
 
