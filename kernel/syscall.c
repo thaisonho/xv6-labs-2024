@@ -104,7 +104,6 @@ extern uint64 sys_close(void);
 extern uint64 sys_trace(void);
 extern uint64 sys_sysinfo(void);
 
-
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
 static uint64 (*syscalls[])(void) = {
@@ -135,29 +134,28 @@ static uint64 (*syscalls[])(void) = {
 
 // the system call name index array
 static char* syscalls_name[] = {
-  [SYS_fork]    "syscall fork",
-  [SYS_exit]    "syscall exit",
-  [SYS_wait]    "syscall wait",
-  [SYS_pipe]    "syscall pipe",
-  [SYS_read]    "syscall read",
-  [SYS_kill]    "syscall kill",
-  [SYS_exec]    "syscall exec",
-  [SYS_fstat]   "syscall fstat",
-  [SYS_chdir]   "syscall chdir",
-  [SYS_dup]     "syscall dup",
-  [SYS_getpid]  "syscall getpid",
-  [SYS_sbrk]    "syscall sbrk",
-  [SYS_sleep]   "syscall sleep",
-  [SYS_uptime]  "syscall uptime",
-  [SYS_open]    "syscall open",
-  [SYS_write]   "syscall write",
-  [SYS_mknod]   "syscall mknod",
-  [SYS_unlink]  "syscall unlink",
-  [SYS_link]    "syscall link",
-  [SYS_mkdir]   "syscall mkdir",
-  [SYS_close]   "syscall close",
-  [SYS_trace]   "syscall trace",
-  [SYS_sysinfo] "syscall sysinfo",
+  [SYS_fork]    "fork",
+  [SYS_exit]    "exit",
+  [SYS_wait]    "wait",
+  [SYS_pipe]    "pipe",
+  [SYS_read]    "read",
+  [SYS_kill]    "kill",
+  [SYS_exec]    "exec",
+  [SYS_fstat]   "fstat",
+  [SYS_chdir]   "chdir",
+  [SYS_dup]     "dup",
+  [SYS_getpid]  "getpid",
+  [SYS_sbrk]    "sbrk",
+  [SYS_sleep]   "sleep",
+  [SYS_uptime]  "uptime",
+  [SYS_open]    "open",
+  [SYS_write]   "write",
+  [SYS_mknod]   "mknod",
+  [SYS_unlink]  "unlink",
+  [SYS_link]    "link",
+  [SYS_mkdir]   "mkdir",
+  [SYS_close]   "close",
+  [SYS_trace]   "trace",
   };
 
   void syscall(void) {
@@ -294,11 +292,16 @@ static char* syscalls_name[] = {
             printf(") -> %ld\n", returnValue);
         }
 
-        // Assign the returnValue to trapframe to store the syscall result
-        p->trapframe->a0 = returnValue;
-    } else {
-        printf("%d %s: unknown sys call %d\n", p->pid, p->name, num);
-        p->trapframe->a0 = -1;
+  num = p->trapframe->a7;
+  if (num > 0 && num < NELEM(syscalls) && syscalls[num]) {
+    p->trapframe->a0 = syscalls[num]();
+    // Check if this syscall should be traced
+    if (p->mask & (1 << num)) {
+      printf("%d: syscall %s -> %ld\n", p->pid, syscalls_name[num], p->trapframe->a0);
     }
+  } else {
+    printf("%d %s: unknown sys call %d\n", p->pid, p->name, num);
+    p->trapframe->a0 = -1;
+  }
 }
 
