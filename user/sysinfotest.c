@@ -32,7 +32,7 @@ countfree()
   if (info.freemem != 0) {
     printf("FAIL: there is no free mem, but sysinfo.freemem=%ld\n",
       info.freemem);
-    exit(1);
+    exit(1); 
   }
   sbrk(-((uint64)sbrk(0) - sz0));
   return n;
@@ -149,5 +149,13 @@ main(int argc, char *argv[])
   testmem();
   testproc();
   printf("sysinfotest: OK\n");
+  // Challenge:
+  struct sysinfo info;
+  if (sysinfo(&info) < 0) {
+    printf("sysinfotest: sysinfo failed\n");
+    exit(1);
+}
+  // Print the computed free memory, number of processes, and load average.
+  printf("freemem: %lu  nproc: %lu  loadavg: %lu\n", info.freemem, info.nproc, info.loadavg);
   exit(0);
 }
