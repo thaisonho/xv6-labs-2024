@@ -103,19 +103,45 @@ sys_trace(void)
   p->mask = mask;
   return 0;
 }
+
+// global variable for load average, scaled by 1000.
+static uint64 loadavg = 0;
+
+
+extern struct {
+  struct spinlock lock;
+  struct proc proc[NPROC];
+} ptable;
+
 uint64
 sys_sysinfo(void)
 {
-    struct sysinfo info;
-    uint64 addr;
+  struct sysinfo info;
+  uint64 addr;
+  struct proc *p;
+  int runnable = 0;
 
-    argaddr(0, &addr);
+  // Retrieve the user-space pointer argument
+  argaddr(0, &addr);
 
-    info.freemem = freemem();  
-    info.nproc = nproc();      
+  // count processes in RUNNABLE or RUNNING state
+  acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->state == RUNNABLE || p->state == RUNNING)
+      runnable++;
+  }
+  release(&ptable.lock);
 
-    if (copyout(myproc()->pagetable, addr, (char *)&info, sizeof(info)) < 0)
-        return -1;
+  // update moving average:
+  // new_load = (59/60)*old_load + (1/60)*runnable
+  // Here both terms are scaled by 1000.
+  loadavg = (loadavg * 59 + (runnable * 1000)) / 60;
 
-    return 0; 
+  info.freemem = freemem();
+  info.nproc = nproc();
+  info.loadavg = loadavg;
+  
+  if(copyout(myproc()->pagetable, addr, (char *)&info, sizeof(info)) < 0)
+    return -1;
+  return 0;
 }
