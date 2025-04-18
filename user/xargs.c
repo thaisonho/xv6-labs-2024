@@ -8,7 +8,10 @@ readline (char *new_argv[32], int curr_argc)
 {
   char buf[1024];
   int n = 0;
-  while (read (0, buf + n, 1))
+  //stdin: abcd\n
+  //n: 4
+  //buffer: abc
+  while (read (0, buf + n, 1))  // 0 la stdin, 1 stdout 
     {
       if (n == 1023)
         {
@@ -24,6 +27,10 @@ readline (char *new_argv[32], int curr_argc)
   buf[n] = 0;
   if (n == 0)
     return 0;
+
+  //new_argv: echo, hellp
+  //buffer: hello world 12
+
   int offset = 0;
   while (offset < n)
     {
@@ -39,8 +46,17 @@ readline (char *new_argv[32], int curr_argc)
       while (buf[offset] == ' ')
         offset++;
     }
-  return curr_argc;
+
+  //new_argv co : echo, hellp, hello, world, 12
+
+  return curr_argc; //5
 }
+
+// echo hello | xargs echo "world" 
+// world hello 
+// dau tien tao process 1 de chay echo hello. stdout luc nay co hello
+//  | chuyen stdout process 1 thanh stdin cho process 2, process 2 la chay xargs echo "world"
+// xargs bien tung tu trong stdin thanh parameter vaf them cho echo 
 
 int
 main (int argc, char const *argv[])
@@ -58,18 +74,39 @@ main (int argc, char const *argv[])
       new_argv[i - 1] = malloc (strlen (argv[i]) + 1);
       strcpy (new_argv[i - 1], argv[i]);
     }
+    // new_args gom:  echo, "world"
+    // command la echo 
+    // argv gom:  xarg, echo, "world", 0
+    // argc la 3 
 
+    //stdin: helo worl
   int curr_argc;
   while ((curr_argc = readline (new_argv, argc - 1)) != 0)
     {
       new_argv[curr_argc] = 0;
-      if (fork () == 0)
+      int pid = fork ();
+
+      //process cha dang thuc hien main xargs hien tai
+      // exec (command, new_argv); tai process cha
+      // thay vi van chuong trinh xargs hien tai, no se goi comand va khong thuc hien
+      // chuong trinh main hien tai
+
+      // tao process con de thuc hien command moi 
+      if ( pid == 0)
         {
-          exec (command, new_argv);
-          fprintf (2, "exec failed\n");
+          //process con
+          //command = xargs
+          exec (command, new_argv); //return lai neu failed khi thu hien command voi argument
+
+          //neu failed
+          fprintf (2, "Exec failed\n");
           exit (1);
         }
-      wait (0);
+      else{
+          //process cha
+          wait (0);
+      }
+      
     }
   exit (0);
 }
