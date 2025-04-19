@@ -134,8 +134,7 @@ sys_sysinfo(void)
 
   // update moving average:
   // new_load = (59/60)*old_load + (1/60)*runnable
-  // Here both terms are scaled by 1000.
-  loadavg = (loadavg * 59 + (runnable * 1000)) / 60;
+  loadavg = (loadavg * 59 + runnable) / 60;
 
   info.freemem = freemem();
   info.nproc = nproc();
